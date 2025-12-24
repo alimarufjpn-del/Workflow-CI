@@ -1,0 +1,9 @@
+name: water_potability_project
+
+conda_env: conda.yaml
+
+entry_points:
+  main:
+    parameters:
+      data_path: {type: str, default: "water_potability_preprocessing.csv"}
+    command: "python modelling.py --data_path {data_path}"
