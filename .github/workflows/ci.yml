@@ -10,39 +10,39 @@ on:
 jobs:
   build-and-train:
     runs-on: ubuntu-latest
-    
+
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
-    
-    - name: Set up Miniconda
-      uses: conda-incubator/setup-miniconda@v2
+
+    - name: Set up Python 3.12.7
+      uses: actions/setup-python@v4
       with:
-        auto-update-conda: true
-        python-version: 3.12.7
-        miniconda-version: "latest"
-    
-    - name: Create and activate conda environment
-      shell: bash -l {0}
+        python-version: '3.12.7'
+
+    - name: Install dependencies
       run: |
-        conda env create -f MLProject/conda.yaml -n ml-project-env
-        conda activate ml-project-env
-    
-    - name: Run MLflow Project
-      shell: bash -l {0}
+        python -m pip install --upgrade pip
+        pip install mlflow scikit-learn pandas matplotlib seaborn
+
+    - name: Run modelling script
+      env:
+        MLFLOW_TRACKING_URI: "file://$(pwd)/mlruns"
       run: |
-        conda activate ml-project-env
-        mlflow run MLProject --experiment-name water_potability_ci
-    
+        mlflow experiments create --experiment-name water_potability_ci 2>/dev/null || true
+        python MLProject/modelling.py --data_path MLProject/water_potability_preprocessing.csv
+
     - name: Get latest MLflow run_id
       run: |
         if [ -d "mlruns" ]; then
           RUN_ID=$(ls -t mlruns/*/*/meta.yaml | head -1 | xargs dirname | xargs basename)
           echo "Latest run_id: $RUN_ID"
           echo "RUN_ID=$RUN_ID" >> $GITHUB_ENV
+        else
+          echo "Directory mlruns not found"
         fi
-    
-    - name: Upload MLflow artifacts
+
+    - name: Upload artifacts
       uses: actions/upload-artifact@v4
       with:
         name: mlflow-artifacts
