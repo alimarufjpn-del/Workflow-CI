@@ -20,14 +20,20 @@ jobs:
       with:
         auto-update-conda: true
         python-version: 3.12.7
+        miniconda-version: "latest"
     
-    - name: Install MLflow
+    - name: Update conda and create environment from conda.yaml
+      shell: bash -l {0}
       run: |
-        pip install mlflow
+        conda update -n base -c defaults conda -y
+        conda env create -f MLProject/conda.yaml -n mlflow-env
+        conda activate mlflow-env
     
     - name: Run MLflow Project
+      shell: bash -l {0}
       run: |
-        mlflow run MLProject --experiment-name water_potability_ci
+        conda activate mlflow-env
+        mlflow run MLProject --experiment-name water_potability_ci --no-conda
     
     - name: Get latest MLflow run_id
       run: |
