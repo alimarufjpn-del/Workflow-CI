@@ -1,49 +1,29 @@
-name: MLflow CI Pipeline
+name: MLflow CI Training
 
 on:
   push:
-    branches: [ main ]
-  pull_request:
-    branches: [ main ]
+    branches:
+      - main
   workflow_dispatch:
 
 jobs:
-  build-and-train:
+  train-model:
     runs-on: ubuntu-latest
 
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
 
-    - name: Set up Python 3.12.7
-      uses: actions/setup-python@v4
+    - name: Set up Miniconda
+      uses: conda-incubator/setup-miniconda@v3
       with:
-        python-version: '3.12.7'
+        auto-update-conda: true
+        python-version: 3.9
 
-    - name: Install dependencies
+    - name: Install MLflow
+      run: pip install mlflow
+
+    - name: Run MLflow Project
+      working-directory: MLProject
       run: |
-        python -m pip install --upgrade pip
-        pip install mlflow scikit-learn pandas matplotlib seaborn
-
-    - name: Run modelling script
-      env:
-        MLFLOW_TRACKING_URI: "file://$(pwd)/mlruns"
-      run: |
-        mlflow experiments create --experiment-name water_potability_ci 2>/dev/null || true
-        python MLProject/modelling.py --data_path MLProject/water_potability_preprocessing.csv
-
-    - name: Get latest MLflow run_id
-      run: |
-        if [ -d "mlruns" ]; then
-          RUN_ID=$(ls -t mlruns/*/*/meta.yaml | head -1 | xargs dirname | xargs basename)
-          echo "Latest run_id: $RUN_ID"
-          echo "RUN_ID=$RUN_ID" >> $GITHUB_ENV
-        else
-          echo "Directory mlruns not found"
-        fi
-
-    - name: Upload artifacts
-      uses: actions/upload-artifact@v4
-      with:
-        name: mlflow-artifacts
-        path: mlruns/
+        mlflow run .
