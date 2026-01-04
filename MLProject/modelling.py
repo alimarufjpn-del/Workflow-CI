@@ -36,24 +36,23 @@ X_train = scaler.fit_transform(X_train)
 X_test = scaler.transform(X_test)
 print('Standarisasi berhasil')
 
-# Autolog
+# Autolog - MLflow akan otomatis log semua metrics dan model
 mlflow.autolog()
 
-with mlflow.start_run(run_name="RF_local"):
-    # Buat dan latih model Random Forest
-    model = RandomForestClassifier(n_estimators=100, random_state=42)
-    model.fit(X_train, y_train)
-    print('Model berhasil dilatih')
-    
-    y_pred = model.predict(X_test)
-    
-    # Evaluasi model
-    accuracy = accuracy_score(y_test, y_pred)
-    print(f"Akurasi: {accuracy}")
-    
-    # Log metrics dan model
-    mlflow.log_metric("accuracy", accuracy)
-    mlflow.sklearn.log_model(model, "random_forest_model")
-    print('Metrics dan model berhasil dicatat di MLflow')
+# Buat dan latih model Random Forest
+# TIDAK PERLU mlflow.start_run() karena sudah dihandle oleh mlflow run
+model = RandomForestClassifier(n_estimators=100, random_state=42)
+model.fit(X_train, y_train)
+print('Model berhasil dilatih')
+
+y_pred = model.predict(X_test)
+
+# Evaluasi model
+accuracy = accuracy_score(y_test, y_pred)
+print(f"Akurasi: {accuracy}")
+
+# Log metrics tambahan
+mlflow.log_metric("accuracy", accuracy)
+print('Metrics berhasil dicatat di MLflow')
 
 print("Training selesai dan model telah dicatat di MLflow")
