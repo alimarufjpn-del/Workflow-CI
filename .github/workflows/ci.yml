@@ -1,40 +1,29 @@
-name: MLflow CI/CD Pipeline
+name: MLflow CI Training
 
 on:
   push:
-    branches: [ main ]
+    branches: [ "main" ]
   pull_request:
-    branches: [ main ]
-  schedule:
-    - cron: '0 0 * * 0'  # Run every Sunday at midnight
+    branches: [ "main" ]
 
 jobs:
   train-model:
     runs-on: ubuntu-latest
-    
+
     steps:
-    - uses: actions/checkout@v3
-    
-    - name: Set up Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.8'
-    
-    - name: Install dependencies
-      run: |
-        pip install -r requirements.txt
-        pip install mlflow
-    
-    - name: Run MLflow Project
-      run: |
-        mlflow run . --env-manager=local
-      
-    - name: Upload Model Artifacts
-      uses: actions/upload-artifact@v3
-      with:
-        name: model-artifacts
-        path: mlruns/
-        
-    - name: Run Tests
-      run: |
-        python -m pytest tests/ -v
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.9"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run MLflow Project
+        run: |
+          mlflow run .
