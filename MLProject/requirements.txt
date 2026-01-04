@@ -1,5 +1,5 @@
-pandas
-scikit-learn
 mlflow
+scikit-learn
+pandas
 matplotlib
 seaborn
