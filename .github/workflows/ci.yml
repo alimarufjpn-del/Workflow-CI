@@ -13,22 +13,19 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v3
 
-    - name: Set up Conda
-      uses: conda-incubator/setup-miniconda@v2
+    - name: Set up Python
+      uses: actions/setup-python@v4
       with:
-        auto-update-conda: true
-        python-version: 3.8
+        python-version: '3.8'
 
-    - name: Create Conda environment
+    - name: Install dependencies
       run: |
-        conda env create -f conda.yaml
+        pip install mlflow scikit-learn pandas matplotlib seaborn
 
     - name: Run MLflow Project
       run: |
-        conda activate water-potability
-        mlflow run . --env-manager=conda
+        mlflow run . --env-manager=local
 
-    # Optional: Upload mlruns as artifact
     - name: Upload mlruns artifact
       uses: actions/upload-artifact@v3
       with:
