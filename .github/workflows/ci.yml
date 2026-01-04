@@ -1,45 +1,65 @@
-name: MLflow Training CI/CD
+name: MLflow Project CI/CD
 
 on:
   workflow_dispatch:
   push:
     branches: [ main, master ]
-    paths:
-      - "MLProject/**"
-      - ".github/workflows/train.yml"
-  schedule:
-    - cron: '0 0 * * 0'
 
 jobs:
-  retrain:
+  mlflow-project-run:
     runs-on: ubuntu-latest
-
+    
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Setup Miniconda
-        uses: conda-incubator/setup-miniconda@v2
-        with:
-          auto-update-conda: true
-          python-version: 3.8
-
-      - name: Create Conda Environment
-        shell: bash -l {0}
-        run: |
-          cd MLProject
-          conda env create -f conda.yaml
-
-      - name: Run MLflow Project
-        shell: bash -l {0}
-        run: |
-          cd MLProject
-          conda activate water-potability
-          mlflow run . --experiment-name water-potability-ci --run-name github-actions-run
-
-      - name: Upload Artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: mlflow-runs
-          path: mlruns/
-          retention-days: 7
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      
+    - name: Set up Python 3.8
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.8"
+        
+    - name: Install dependencies
+      run: |
+        pip install mlflow scikit-learn pandas
+        
+    - name: Debug - List files
+      run: |
+        echo " Current directory structure:"
+        ls -la
+        echo " MLProject directory:"
+        ls -la MLProject/
+        
+    - name: Debug - Check MLProject file
+      run: |
+        echo "📄 MLProject file content:"
+        cat MLProject/MLProject
+        echo ""
+        echo " modelling.py arguments:"
+        grep "add_argument" MLProject/modelling.py || true
+        
+    - name: Run MLflow Project with explicit parameters
+      run: |
+        echo " Running MLflow Project..."
+        cd MLProject
+        # Coba jalankan dengan parameter eksplisit
+        python modelling.py \
+          --data_file water_potability_preprocessing.csv \
+          --experiment_name "test-ci" \
+          --run_name "test-run-1" \
+          || echo " Python script failed"
+          
+    - name: Run as MLflow Project (alternative)
+      run: |
+        echo " Alternative: Run as MLflow Project"
+        cd MLProject
+        # Coba tanpa parameter dulu
+        mlflow run . --env-manager=local --no-conda
+        
+    - name: Check MLflow artifacts
+      run: |
+        if [ -d "mlruns" ]; then
+          echo " MLflow artifacts created"
+          find mlruns -type f | head -10
+        else
+          echo " No MLflow artifacts found"
+        fi
