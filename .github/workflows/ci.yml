@@ -14,26 +14,22 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v3
     
-    - name: Set up Conda
-      uses: conda-incubator/setup-miniconda@v2
+    - name: Set up Python
+      uses: actions/setup-python@v4
       with:
-        auto-activate-base: true
-        activate-environment: ""
-        python-version: 3.12.7
+        python-version: '3.12.7'
     
-    - name: Install MLflow
-      shell: bash -l {0}
+    - name: Install dependencies
       run: |
-        pip install mlflow
+        python -m pip install --upgrade pip
+        pip install mlflow scikit-learn pandas matplotlib seaborn
     
     - name: Run MLflow Project
-      shell: bash -l {0}
       run: |
         cd MLProject
-        mlflow run .
+        mlflow run . --no-conda
     
     - name: Get latest MLflow run id
-      shell: bash -l {0}
       run: |
         if [ -d "MLProject/mlruns" ]; then
           RUN_ID=$(ls -t MLProject/mlruns/*/* | head -1 | xargs dirname)
