@@ -1,13 +1,11 @@
 name: water-potability
 channels:
   - conda-forge
+  - defaults
 dependencies:
   - python=3.8
   - pandas
   - scikit-learn
   - matplotlib
   - seaborn
-  - mlflow
-  - pip
-  - pip:
-    - mlflow
+  - mlflow>=2.0
