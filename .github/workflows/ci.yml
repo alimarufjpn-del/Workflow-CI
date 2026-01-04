@@ -1,27 +1,44 @@
-name: MLflow CI Training
+name: ML Model Training CI
 
 on:
   push:
-    branches: [ "main" ]
+    branches:
+      - main
   pull_request:
-    branches: [ "main" ]
+    branches:
+      - main
 
 jobs:
   train-model:
     runs-on: ubuntu-latest
-
+    
     steps:
-      - uses: actions/checkout@v3
-
-      - uses: actions/setup-python@v4
-        with:
-          python-version: "3.9"
-
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install pandas scikit-learn mlflow matplotlib seaborn
-
-      - name: Run MLflow Project
-        run: |
-          mlflow run MLProject --env-manager=local
+    - name: Checkout repository
+      uses: actions/checkout@v3
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.9'
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r MLProject/requirements.txt
+    
+    - name: Set up MLflow tracking server
+      run: |
+        mlflow server --backend-store-uri sqlite:///mlflow.db --default-artifact-root ./mlruns --host 0.0.0.0 --port 5001 &
+        sleep 10
+    
+    - name: Run model training
+      run: |
+        cd MLProject
+        python modelling.py
+    
+    - name: Upload MLflow artifacts
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: mlflow-artifacts
+        path: mlruns/
