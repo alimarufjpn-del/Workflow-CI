@@ -1,4 +1,4 @@
-name: water-potability-mlflow
+name: water_potability_model
 
 conda_env: conda.yaml
 
