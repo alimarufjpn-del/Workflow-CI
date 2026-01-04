@@ -3,7 +3,7 @@ conda_env: conda.yaml
 entry_points:
   main:
     parameters:
-      data_file:
+      data_path:  # GANTI dari data_file ke data_path
         type: str
         default: "water_potability_preprocessing.csv"
       experiment_name:
@@ -14,6 +14,6 @@ entry_points:
         default: "automated-run"
     command: |
       python modelling.py \
-        --data_file {data_file} \
+        --data_path {data_path} \
         --experiment_name {experiment_name} \
         --run_name {run_name}
