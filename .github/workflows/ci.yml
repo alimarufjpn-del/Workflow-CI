@@ -1,59 +1,40 @@
-name: MLflow Training CI/CD
+name: MLflow CI/CD Pipeline
 
 on:
   push:
-    branches: [ main, master ]
-  workflow_dispatch:  # Manual trigger
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  schedule:
+    - cron: '0 0 * * 0'  # Run every Sunday at midnight
 
 jobs:
   train-model:
     runs-on: ubuntu-latest
     
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v4
-      
-    - name: Set up Python 3.8
-      uses: actions/setup-python@v5
+    - uses: actions/checkout@v3
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
       with:
-        python-version: "3.8"
-        
+        python-version: '3.8'
+    
     - name: Install dependencies
       run: |
-        pip install --upgrade pip
-        pip install mlflow scikit-learn pandas matplotlib seaborn
-        
-    - name: List files for debugging
+        pip install -r requirements.txt
+        pip install mlflow
+    
+    - name: Run MLflow Project
       run: |
-        echo "📂 Current directory:"
-        pwd
-        echo "📂 Contents:"
-        ls -la
-        echo "📂 Check if dataset exists:"
-        ls -la *.csv || echo "No CSV files found"
-        
-    - name: Run training script directly
-      run: |
-        echo "🚀 Running training script..."
-        python modelling.py
-        
-    - name: Verify MLflow results
-      run: |
-        echo "📊 Checking MLflow results..."
-        if [ -d "mlruns" ]; then
-          echo "✅ MLflow run successful!"
-          echo "Files created:"
-          find mlruns -type f | head -10
-        else
-          echo "❌ No mlruns directory found"
-          echo "Current directory contents:"
-          ls -la
-        fi
-        
-    - name: Upload MLflow artifacts (if exist)
-      if: success()
-      uses: actions/upload-artifact@v4
+        mlflow run . --env-manager=local
+      
+    - name: Upload Model Artifacts
+      uses: actions/upload-artifact@v3
       with:
-        name: mlflow-artifacts
+        name: model-artifacts
         path: mlruns/
-        retention-days: 1
+        
+    - name: Run Tests
+      run: |
+        python -m pytest tests/ -v
