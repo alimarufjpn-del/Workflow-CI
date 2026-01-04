@@ -7,12 +7,15 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split
 import mlflow
+import os
 print('Import Library berhasil')
 
 # Set up mlflow
-mlflow.set_tracking_uri("http://localhost:5001")
+# Gunakan local tracking jika tidak ada server MLflow yang berjalan
+tracking_uri = os.getenv("MLFLOW_TRACKING_URI", "./mlruns")
+mlflow.set_tracking_uri(tracking_uri)
 mlflow.set_experiment("water_potability_local")
-print('Set-up berhasil')
+print(f'Set-up berhasil dengan tracking URI: {tracking_uri}')
 
 # Membaca dataset
 df = pd.read_csv("water_potability_preprocessing.csv")
