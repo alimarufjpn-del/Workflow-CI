@@ -1,44 +1,48 @@
-name: ML Model Training CI
+name: MLflow CI/CD
 
 on:
   push:
-    branches:
-      - main
+    branches: [ main ]
   pull_request:
-    branches:
-      - main
+    branches: [ main ]
 
 jobs:
   train-model:
     runs-on: ubuntu-latest
     
     steps:
-    - name: Checkout repository
+    - name: Checkout code
       uses: actions/checkout@v3
     
-    - name: Set up Python
-      uses: actions/setup-python@v4
+    - name: Set up Conda
+      uses: conda-incubator/setup-miniconda@v2
       with:
-        python-version: '3.9'
+        auto-activate-base: true
+        activate-environment: ""
+        python-version: 3.12.7
     
-    - name: Install dependencies
+    - name: Install MLflow
+      shell: bash -l {0}
       run: |
-        python -m pip install --upgrade pip
-        pip install -r MLProject/requirements.txt
+        pip install mlflow
     
-    - name: Set up MLflow tracking server
-      run: |
-        mlflow server --backend-store-uri sqlite:///mlflow.db --default-artifact-root ./mlruns --host 0.0.0.0 --port 5001 &
-        sleep 10
-    
-    - name: Run model training
+    - name: Run MLflow Project
+      shell: bash -l {0}
       run: |
         cd MLProject
-        python modelling.py
+        mlflow run .
     
-    - name: Upload MLflow artifacts
-      uses: actions/upload-artifact@v3
-      if: always()
+    - name: Get latest MLflow run id
+      shell: bash -l {0}
+      run: |
+        if [ -d "MLProject/mlruns" ]; then
+          RUN_ID=$(ls -t MLProject/mlruns/*/* | head -1 | xargs dirname)
+          echo "Latest run_id: $RUN_ID"
+          echo "RUN_ID=$RUN_ID" >> $GITHUB_ENV
+        fi
+    
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v4
       with:
         name: mlflow-artifacts
-        path: mlruns/
+        path: MLProject/mlruns/
