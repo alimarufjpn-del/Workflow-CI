@@ -1,9 +1,9 @@
-name: MLflow CI/CD
+name: MLflow CI/CD Training
 
 on:
-  workflow_dispatch:
   push:
     branches: [ main ]
+  workflow_dispatch:
 
 jobs:
   train:
@@ -13,21 +13,23 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v3
 
-    - name: Set up Python 3.8
-      uses: actions/setup-python@v4
+    - name: Set up Conda
+      uses: conda-incubator/setup-miniconda@v2
       with:
-        python-version: '3.8'
+        auto-update-conda: true
+        python-version: 3.8
 
-    - name: Install dependencies
+    - name: Create Conda environment
       run: |
-        pip install mlflow
-        pip install -r requirements.txt
+        conda env create -f conda.yaml
 
     - name: Run MLflow Project
       run: |
-        mlflow run . --experiment-name water-potability-ci
+        conda activate water-potability
+        mlflow run . --env-manager=conda
 
-    - name: Upload artifacts
+    # Optional: Upload mlruns as artifact
+    - name: Upload mlruns artifact
       uses: actions/upload-artifact@v3
       with:
         name: mlruns
