@@ -1,29 +1,31 @@
-name: MLflow CI Training
+name: Train Model
 
 on:
   push:
-    branches:
-      - main
-  workflow_dispatch:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
 
 jobs:
-  train-model:
+  train:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v4
+    - uses: actions/checkout@v3
 
-    - name: Set up Miniconda
-      uses: conda-incubator/setup-miniconda@v3
+    - name: Set up Conda
+      uses: conda-incubator/setup-miniconda@v2
       with:
         auto-update-conda: true
-        python-version: 3.9
+        python-version: 3.8
 
-    - name: Install MLflow
-      run: pip install mlflow
+    - name: Install dependencies
+      shell: bash -l {0}
+      run: |
+        conda env update -f MLProject/conda.yaml --name base
 
     - name: Run MLflow Project
-      working-directory: MLProject
+      shell: bash -l {0}
       run: |
-        mlflow run .
+        cd MLProject
+        mlflow run . --experiment-name water-potability-ci
