@@ -36,9 +36,10 @@ jobs:
       shell: bash -l {0}
       run: |
         if [ -d "MLProject/mlruns" ]; then
-          RUN_ID=$(ls -t MLProject/mlruns/*/* | head -1 | xargs dirname)
-          echo "Latest run_id: $RUN_ID"
-          echo "RUN_ID=$RUN_ID" >> $GITHUB_ENV
+          echo "MLruns directory exists"
+          find MLProject/mlruns -type d -name "meta.yaml" 2>/dev/null || echo "No runs found"
+        else
+          echo "MLruns directory not found"
         fi
     
     - name: Upload artifacts
