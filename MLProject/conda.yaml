@@ -1,12 +1,13 @@
-name: water-potability-env
+name: water_potability_env
 channels:
   - defaults
+  - conda-forge
 dependencies:
-  - python=3.9
+  - python=3.12.7
   - pip
   - pip:
-      - pandas
-      - scikit-learn
-      - mlflow
-      - matplotlib
-      - seaborn
+    - mlflow
+    - scikit-learn
+    - pandas
+    - matplotlib
+    - seaborn
